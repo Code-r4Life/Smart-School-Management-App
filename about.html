@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="icons/favicon.png">
+  <title>About — Smart School</title>
+  <style>
+    /* Base */
+    * { box-sizing: border-box; margin:0; padding:0; font-family: 'Inter', sans-serif; }
+    body { background-color:#f8fafc; color:#1e293b; line-height:1.5; }
+    a { text-decoration:none; color:inherit; }
+    img { max-width:100%; display:block; }
+
+    /* Container */
+    .container { max-width:1280px; margin:0 auto; padding:24px; }
+
+    /* Flex/grid utilities */
+    .flex { display:flex; }
+    .flex-col { flex-direction:column; }
+    .items-center { align-items:center; }
+    .justify-center { justify-content:center; }
+    .gap-3 { gap:0.75rem; }
+    .gap-4 { gap:1rem; }
+    .grid { display:grid; }
+    .grid-cols-2 { grid-template-columns:1fr 1fr; }
+    .md\\:grid-cols-3 { grid-template-columns:1fr; }
+    @media(min-width:768px) { .md\\:grid-cols-3 { grid-template-columns:repeat(3,1fr); } }
+    .space-y-3 > * + * { margin-top:0.75rem; }
+
+    /* Typography */
+    h1 { font-size:3rem; font-weight:700; margin-bottom:1rem; background:linear-gradient(to right,#4f46e5,#7c3aed); -webkit-background-clip:text; color:transparent; }
+    h2 { font-size:2rem; font-weight:700; margin-bottom:1.5rem; }
+    h3 { font-size:1.25rem; font-weight:700; margin-bottom:0.5rem; color:#1e293b; }
+    p { color:#475569; margin-bottom:1rem; }
+    .text-xl { font-size:1.25rem; }
+    .text-lg { font-size:1.125rem; }
+
+    /* Spacing */
+    .mb-4 { margin-bottom:1rem; }
+    .mb-6 { margin-bottom:1.5rem; }
+    .mb-8 { margin-bottom:2rem; }
+    .p-6 { padding:1.5rem; }
+    .p-8 { padding:2rem; }
+
+    /* -------------------------
+       Navbar
+       ------------------------- */
+    .navbar {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      backdrop-filter: blur(5px);
+      background: rgba(255,255,255,0.8);
+      border-bottom: 1px solid #e0e7ff; /* indigo-100 */
+      box-shadow: 0 2px 4px rgba(15,23,42,0.05);
+    }
+    .nav-container { max-width:1280px; margin:0 auto; padding:0 1rem; display:flex; justify-content:space-between; align-items:center; height:4rem; }
+    .logo { display:flex; align-items:center; gap:0.75rem; justify-content: center;}
+    .logo-icon { width:2.5rem; height:2.5rem; display:flex; align-items:center; justify-content:center; border-radius:0.5rem; background: linear-gradient(135deg,#4f46e5,#7c3aed); color:#fff; box-shadow:0 4px 12px rgba(0,0,0,0.1); }
+    .logo h1 { font-size:1.125rem; font-weight:700; background:linear-gradient(90deg,#4f46e5,#7c3aed); color:transparent; -webkit-background-clip:text; margin-top: 16px;}
+
+    .nav-links { display:flex; gap:0.25rem; }
+    .nav-links a { display:flex; align-items:center; gap:0.5rem; padding:0.5rem 1rem; border-radius:0.5rem; font-size:0.875rem; transition:all 0.3s; color:#4b5563; }
+    .nav-links a.active { background: linear-gradient(90deg,#4f46e5,#7c3aed); color:#fff; box-shadow:0 4px 12px rgba(79,70,229,0.2); }
+
+    /* Cards */
+    .card { background-color:#fff; border-radius:1.5rem; box-shadow:0 6px 22px rgba(15,23,42,0.06); padding:2rem; margin-bottom:2rem; transition:all 0.3s ease; }
+    .card:hover { box-shadow:0 10px 30px rgba(15,23,42,0.12); }
+
+    /* Feature cards */
+    .feature-card { background:linear-gradient(to bottom,#fff,#eef2ff); border-radius:1rem; padding:1.5rem; text-align:center; border:1px solid #e0e7ff; transition:all 0.3s; }
+    .feature-card:hover { box-shadow:0 10px 30px rgba(15,23,42,0.12); }
+    .feature-icon { width:56px; height:56px; margin:0 auto 1rem auto; display:flex; align-items:center; justify-content:center; border-radius:0.75rem; background:linear-gradient(135deg,#4f46e5,#7c3aed); color:#fff; font-size:1.5rem; }
+
+    /* Developer section */
+    .dev-section { background:linear-gradient(to right,#4f46e5,#7c3aed); border-radius:1.5rem; color:#fff; padding:2rem; margin-bottom:2rem; }
+    .dev-section .dev-grid { display:grid; grid-template-columns:1fr; gap:10rem; }
+    @media(min-width:768px) { .dev-section .dev-grid { grid-template-columns:1fr 1fr; } }
+    .dev-icon { width:40px; height:40px; display:flex; align-items:center; justify-content:center; border-radius:0.5rem; background:rgba(255,255,255,0.2); }
+
+    /* Developer profile circle */
+    .dev-circle { width:192px; height:192px; background:rgba(255,255,255,0.2); border-radius:50%; display:flex; align-items:center; justify-content:center; margin-bottom:1.5rem; box-shadow:0 6px 22px rgba(15,23,42,0.06); }
+    .dev-circle-inner { width:160px; height:160px; background:linear-gradient(to bottom,#fff,#e0e7ff); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:2.5rem; color:#4f46e5; }
+
+    /* Animations */
+    .enter { opacity:0; transform:translateY(20px); transition:opacity 0.5s ease, transform 0.5s ease; }
+    .enter-show { opacity:1; transform:translateY(0); }
+
+    /* Text center */
+    .text-center { text-align:center; }
+  </style>
+</head>
+<body>
+    <!-- Navbar -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="logo">
+        <div class="logo-icon">
+          <img src="icons/school-stroke-rounded.svg">
+        </div>
+        <div>
+          <h1>Smart School Management System</h1>
+        </div>
+      </div>
+      <div class="nav-links">
+        <a href="dashboard.html">Dashboard</a>
+        <a href="students.html">Students</a>
+        <a href="teachers.html">Teachers</a>
+        <a href="attendance.html">Attendance</a>
+        <a href="exams.html">Exams</a>
+        <a href="fees.html">Fees</a>
+        <a href="about.html" class="active">About</a>
+      </div>
+    </div>
+  </nav>
+  <div class="container">
+    <!-- Header -->
+    <div id="header" class="text-center mb-12 enter">
+      <div class="flex justify-center mb-6">
+        <div style="width:80px; height:80px; background:linear-gradient(to bottom right,#4f46e5,#7c3aed); border-radius:1.5rem; display:flex; align-items:center; justify-content:center; box-shadow:0 6px 22px rgba(15,23,42,0.06); font-size:2rem; color:#fff;">
+            <img src="icons/school-2-stroke-rounded.svg">
+        </div>
+      </div>
+      <h1 class="mb-4">Smart School Management System</h1>
+      <p class="text-xl" style="max-width:42rem; margin: 2rem auto;">A modern, intuitive platform designed to streamline school administration and make educational management effortless</p>
+    </div>
+
+    <!-- About Section -->
+    <div class="card enter">
+      <h2>About the System</h2>
+      <p>Smart School Management System is a comprehensive web application built to help educational institutions 
+         manage their day-to-day operations efficiently. From tracking student attendance to managing exam schedules 
+         and fee payments, this system provides all the essential tools needed for smooth school administration.</p>
+      <p>Built with cutting-edge React technology and featuring a sleek, modern interface, this system prioritizes 
+         user experience while maintaining powerful functionality. All data is securely stored in your browser's 
+         localStorage, ensuring privacy and instant access to your information.</p>
+    </div>
+
+    <!-- Features Grid -->
+    <div class="flex gap-3 mb-4">
+      <div class="feature-card enter">
+        <div class="feature-icon">
+            <img src="icons/target-02-stroke-rounded.svg">
+        </div>
+        <h3>Comprehensive Management</h3>
+        <p>All-in-one solution for managing students, teachers, attendance, exams, and fees</p>
+      </div>
+      <div class="feature-card enter">
+        <div class="feature-icon">
+            <img src="icons/zap-stroke-rounded.svg">
+        </div>
+        <h3>Lightning Fast</h3>
+        <p>Built with modern technology for instant data access and smooth performance</p>
+      </div>
+      <div class="feature-card enter">
+        <div class="feature-icon">
+            <img src="icons/shield-01-stroke-rounded.svg">
+        </div>
+        <h3>Secure & Reliable</h3>
+        <p>Your data is stored locally with browser localStorage for privacy and security</p>
+      </div>
+    </div>
+
+    <!-- Developer Section -->
+    <div class="dev-section enter">
+      <div class="dev-grid">
+        <div>
+          <h2>Meet the Developer</h2>
+          <p class="text-lg" style="color:rgba(255,255,255,0.9); margin-bottom:1.5rem;">
+            This system was crafted with passion and precision by <strong>Shinjan Saha</strong>, 
+            a dedicated developer committed to creating intuitive and powerful solutions for educational institutions.
+          </p>
+          <div class="space-y-3">
+            <div class="flex items-center gap-3">
+              <div class="dev-icon"><img src="icons/mail-01-stroke-rounded.svg"></div> <span>shinjansaha00@gmail.com</span>
+            </div>
+            <div class="flex items-center gap-3">
+              <div class="dev-icon"><img src="icons/call-stroke-rounded.svg"></div> <span>+91 8017054970</span>
+            </div>
+            <div class="flex items-center gap-3">
+              <div class="dev-icon"><img src="icons/location-05-stroke-rounded.svg"></div> <span>West Bengal, Kolkata, India</span>
+            </div>
+          </div>
+        </div>
+        <div class="flex flex-col items-center justify-center">
+          <div class="dev-circle">
+            <div class="dev-circle-inner">
+                <img src="icons/mortarboard-02-stroke-rounded.svg">
+            </div>
+          </div>
+          <div class="flex gap-4">
+            <a href="https://github.com/Code-r4Life/" class="dev-icon">
+                <img src="icons/github-stroke-rounded.svg">
+            </a>
+            <a href="https://www.linkedin.com/in/shinjan-saha-1bb744319/" class="dev-icon">
+                <img src="icons/linkedin-02-stroke-rounded.svg">
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Animate elements like framer-motion
+    window.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('.enter').forEach((el, index) => {
+        setTimeout(() => { el.classList.add('enter-show'); }, 150 * index);
+      });
+    });
+  </script>
+</body>
+</html>

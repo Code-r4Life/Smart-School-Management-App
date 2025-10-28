@@ -1,0 +1,498 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="icon" type="image/png" href="icons/favicon.png">
+  <title>Fees Management — Smart School</title>
+  <style>
+    /* -------------------------
+       Reset & base
+       ------------------------- */
+    *, *::before, *::after { box-sizing: border-box; }
+    html,body { height:100%; }
+    body {
+      margin:0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background: #f8fafc; /* Tailwind gray-50 */
+      color: #0f172a; /* gray-900 */
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      line-height:1.3;
+    }
+    a { text-decoration:none; }
+    img { max-width:100%; display:block; }
+
+    /* -------------------------
+       Navbar
+       ------------------------- */
+    .navbar {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      backdrop-filter: blur(5px);
+      background: rgba(255,255,255,0.8);
+      border-bottom: 1px solid #e0e7ff; /* indigo-100 */
+      box-shadow: 0 2px 4px rgba(15,23,42,0.05);
+    }
+    .nav-container { max-width:1280px; margin:0 auto; padding:0 1rem; display:flex; justify-content:space-between; align-items:center; height:4rem; }
+    .logo { display:flex; align-items:center; gap:0.75rem; }
+    .logo-icon { width:2.5rem; height:2.5rem; display:flex; align-items:center; justify-content:center; border-radius:0.5rem; background: linear-gradient(135deg,#4f46e5,#7c3aed); color:#fff; box-shadow:0 4px 12px rgba(0,0,0,0.1); }
+    .logo h1 { font-size:1.125rem; font-weight:700; background:linear-gradient(90deg,#4f46e5,#7c3aed); color:transparent; -webkit-background-clip:text; }
+
+    .nav-links { display:flex; gap:0.25rem; }
+    .nav-links a { display:flex; align-items:center; gap:0.5rem; padding:0.5rem 1rem; border-radius:0.5rem; font-size:0.875rem; transition:all 0.3s; color:#4b5563; }
+    .nav-links a.active { background: linear-gradient(90deg,#4f46e5,#7c3aed); color:#fff; box-shadow:0 4px 12px rgba(79,70,229,0.2); }
+
+    /* -------------------------
+       Container
+       ------------------------- */
+    .container {
+      padding: 1.5rem; /* p-6 */
+      max-width: 1280px; /* approx max-w-7xl */
+      margin: 0 auto;
+    }
+
+    /* Header */
+    .header {
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      margin-bottom:22px;
+    }
+    @media(min-width:720px){ .header{flex-direction:row;justify-content:space-between;align-items:center} }
+    .title {
+      font-size:32px;
+      font-weight:800;
+      margin:0;
+      background: linear-gradient(90deg,#4f46e5,#7c3aed);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    .subtitle { margin:0; color:#475569; }
+
+    /* buttons */
+    .btn {
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      padding:10px 14px;
+      border-radius:12px;
+      border:none;
+      cursor:pointer;
+      font-weight:700;
+      font-size:14px;
+      transition: transform .12s ease, box-shadow .12s ease;
+    }
+    .btn:active { transform: translateY(1px); }
+    .btn-primary {
+      background: linear-gradient(90deg,#4f46e5,#7c3aed);
+      color:#fff;
+      box-shadow:0 10px 30px rgba(79,70,229,0.12);
+    }
+
+    /* summary cards */
+    .grid-2 {
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:16px;
+      margin:18px 0 22px 0;
+    }
+    @media(min-width:900px){ .grid-3{grid-template-columns:repeat(3,1fr)} }
+    .stat {
+      border-radius:14px;
+      padding:18px;
+      color:#fff;
+      box-shadow:0 10px 30px rgba(2,6,23,0.06);
+      min-height:86px;
+      display:flex;
+      flex-direction:column;
+      justify-content:space-between;
+    }
+    .stat .label { font-size:13px; opacity:0.92; }
+    .stat .value { font-size:28px; font-weight:800; margin-top:6px; }
+
+    .stat-blue { background: linear-gradient(135deg,#3b82f6,#2563eb); }
+    .stat-green { background: linear-gradient(135deg,#16a34a,#059669); }
+    .stat-orange { background: linear-gradient(135deg,#f97316,#f59e0b); }
+
+    /* search */
+    .search-wrap { margin-bottom:16px; position:relative; }
+    .search-input {
+      width:100%;
+      padding: .6rem .9rem .6rem 1rem;
+      border-radius:0.6rem;
+      border:1px solid #e6edf9;
+      background:#fff;
+      box-shadow: 0 2px 8px rgba(15,23,42,0.03);
+      outline:none;
+    }
+    .search-input::placeholder { color:#9aa6bf; }
+
+    /* panel */
+    .panel {
+      background:#fff;
+      border-radius:16px;
+      padding:18px;
+      box-shadow:0 10px 30px rgba(2,6,23,0.04);
+      border:1px solid rgba(79,70,229,0.04);
+      margin-bottom:18px;
+    }
+
+    /* add form (collapsible) */
+    .form-row {
+      display:grid;
+      grid-template-columns:1fr;
+      gap:10px;
+    }
+    @media(min-width:720px){ .form-row{grid-template-columns:repeat(2,1fr)} }
+    .input, .select, .date {
+      padding:10px 12px;
+      border-radius:10px;
+      border:1px solid #e6edf9;
+      outline:none;
+      font-size:14px;
+      width:100%;
+      background:#fff;
+    }
+
+    /* form actions */
+    .form-actions { display:flex; gap:12px; justify-content:flex-end; margin-top:8px; }
+
+    /* list/table */
+    .table-wrap { background:#fff; border-radius:16px; overflow:hidden; border:1px solid rgba(15,23,42,0.04); box-shadow:0 10px 30px rgba(2,6,23,0.03); }
+    table { width:100%; border-collapse:collapse; font-size:14px; }
+    thead { background: linear-gradient(90deg,#4f46e5,#7c3aed); color:#fff; }
+    thead th { text-align:left; padding:12px 16px; font-weight:700; font-size:13px; }
+    tbody td { padding:14px 16px; border-top:1px solid #f1f5f9; color:#334155; vertical-align:middle; }
+    tbody tr:hover { background:#fafbff; }
+
+    .status-btn {
+      padding:8px 12px;
+      border-radius:999px;
+      font-weight:700;
+      border:none;
+      cursor:pointer;
+      transition: all .12s ease;
+    }
+    .status-paid { background:#dcfce7; color:#166534; }
+    .status-pending { background:#fff7ed; color:#b45309; }
+
+    /* card animation (simulate framer scale+fade) */
+    .card-animate { transform-origin:center center; opacity:0; transform: scale(.96); transition: transform .28s cubic-bezier(.2,.9,.3,1), opacity .22s ease; }
+    .card-animate.show { opacity:1; transform: scale(1); }
+
+    /* small helpers */
+    .muted { color:#6b7280; font-size:13px; }
+    .flex { display:flex; align-items:center; gap:10px; }
+    .right { display:flex; justify-content:flex-end; align-items:center; gap:10px; }
+
+    /* icon style fallback */
+    .icon {
+      display:inline-flex; align-items:center; justify-content:center;
+      width:28px; height:28px; border-radius:8px;
+      background: rgba(255,255,255,0.08); color: #fff;
+      font-weight:700;
+    }
+
+    /* small responsive tweaks */
+    @media(max-width:520px){
+      .title { font-size:24px; }
+      .form-actions { justify-content:stretch; flex-direction:column-reverse; }
+      .btn { width:100%; justify-content:center; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="logo">
+        <div class="logo-icon">
+          <img src="icons/school-stroke-rounded.svg">
+        </div>
+        <div>
+          <h1>Smart School Management System</h1>
+        </div>
+      </div>
+      <div class="nav-links">
+        <a href="dashboard.html">Dashboard</a>
+        <a href="students.html">Students</a>
+        <a href="teachers.html">Teachers</a>
+        <a href="attendance.html">Attendance</a>
+        <a href="exams.html">Exams</a>
+        <a href="fees.html" class="active">Fees</a>
+        <a href="about.html">About</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <div>
+        <h1 class="title">Fees Management</h1>
+        <p class="subtitle">Track student fee payments</p>
+      </div>
+      <div class="right">
+        <button id="openFormBtn" class="btn btn-primary" title="Add Fee Record">
+          <img src="icons/plus-sign-stroke-rounded.svg">
+          Add Fee Record
+        </button>
+      </div>
+    </div>
+
+    <!-- Summary cards -->
+    <div class="grid-2" id="summaryCards">
+      <div class="stat stat-green">
+        <div class="flex">
+          <div>
+            <div class="label">Paid</div>
+            <div class="value" id="paidAmount">0</div>
+          </div>
+          <div style="margin-left:auto" class="icon">
+            <img src="icons/checkmark-badge-05-stroke-rounded.svg">
+          </div>
+        </div>
+      </div>
+      <div class="stat stat-orange">
+        <div class="flex">
+          <div>
+            <div class="label">Pending</div>
+            <div class="value" id="pendingAmount">0</div>
+          </div>
+          <div style="margin-left:auto" class="icon">
+            <img src="icons/loading-01-stroke-rounded.svg">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Search -->
+    <div class="search-wrap">
+      <input id="searchInput" class="search-input" type="text" placeholder="Search by student name or roll number..." />
+    </div>
+
+    <!-- Add form panel (collapsible) -->
+    <div id="formPanel" class="panel card-animate" style="display:none; margin-bottom:18px;">
+      <form id="feeForm" autocomplete="off">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <strong style="font-size:16px">Add Fee Record</strong>
+          <button type="button" id="closeForm" class="btn" style="background:transparent; font-weight:700; color:#6b7280;" title="Cancel">
+            <img src="icons/cancel-01-stroke-rounded.svg">
+          </button>
+        </div>
+
+        <div class="form-row">
+          <input id="studentName" class="input" placeholder="Student Name" required />
+          <input id="studentRoll" class="input" placeholder="Roll Number" required />
+          <input id="amount" class="input" type="number" step="0.01" placeholder="Amount (₹)" required />
+          <input id="date" class="date" type="date" required />
+          <select id="status" class="select">
+            <option value="pending">Pending</option>
+            <option value="paid">Paid</option>
+          </select>
+          <input id="classInput" class="input" placeholder="Class: e.g. 12" />
+        </div>
+
+        <div class="form-actions" style="margin-top:12px;">
+          <button type="button" id="cancelBtn" class="btn" style="background:#fff;border:1px solid #e6edf9;">Cancel</button>
+          <button type="submit" class="btn btn-primary">Add Record</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Table -->
+    <div class="table-wrap card-animate" id="tableCard">
+      <table>
+        <thead>
+          <tr>
+            <th>Student Name</th>
+            <th>Roll Number</th>
+            <th>Class</th>
+            <th>Amount</th>
+            <th>Date</th>
+            <th style="text-align:center;">Status</th>
+          </tr>
+        </thead>
+        <tbody id="feesTbody">
+          <tr><td colspan="6" style="padding:28px; text-align:center; color:#94a3b8;">No fee records found. Add your first record to get started!</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+
+  <script>
+  /************************************************************************
+   * Updated Fees Management Logic (instant add + student count summary)
+   ************************************************************************/
+
+  // DOM refs
+  const openFormBtn = document.getElementById('openFormBtn');
+  const formPanel = document.getElementById('formPanel');
+  const feeForm = document.getElementById('feeForm');
+  const closeForm = document.getElementById('closeForm');
+  const cancelBtn = document.getElementById('cancelBtn');
+  const searchInput = document.getElementById('searchInput');
+
+  const studentRollInput = document.getElementById('studentRoll');
+  const studentNameInput = document.getElementById('studentName');
+  const amountInput = document.getElementById('amount');
+  const dateInput = document.getElementById('date');
+  const statusInput = document.getElementById('status');
+  const classInput = document.getElementById('classInput');
+
+  const feesTbody = document.getElementById('feesTbody');
+  const paidAmountEl = document.getElementById('paidAmount');
+  const pendingAmountEl = document.getElementById('pendingAmount');
+  const tableCard = document.getElementById('tableCard');
+
+  // state
+  let fees = JSON.parse(localStorage.getItem('fees') || '[]');
+
+  // initialize date default
+  const today = new Date().toISOString().split('T')[0];
+  dateInput.value = today;
+
+  // utility: save + render
+  function saveFees(newFees) {
+    fees = newFees;
+    localStorage.setItem('fees', JSON.stringify(fees));
+    renderAll(); // live update UI
+  }
+
+  // render summary and table
+  function renderAll() {
+    // summary — count students instead of summing money
+    const totalStudents = fees.length;
+    const paidCount = fees.filter(f => f.status === 'paid').length;
+    const pendingCount = fees.filter(f => f.status === 'pending').length;
+
+    paidAmountEl.textContent = `${paidCount} Paid`;
+    pendingAmountEl.textContent = `${pendingCount} Pending`;
+
+    // table (apply search filter)
+    const q = (searchInput.value || '').trim().toLowerCase();
+    const filtered = fees.filter(f => {
+      if (!q) return true;
+      return (f.studentName || '').toLowerCase().includes(q) || (f.studentRoll || '').toLowerCase().includes(q);
+    });
+
+    if (filtered.length === 0) {
+      feesTbody.innerHTML =
+        '<tr><td colspan="6" style="padding:28px; text-align:center; color:#94a3b8;">No fee records found. Add your first record to get started!</td></tr>';
+      return;
+    }
+
+    // clear table and rebuild
+    feesTbody.innerHTML = '';
+    filtered.forEach((fee, idx) => {
+      const tr = document.createElement('tr');
+      tr.className = 'card-animate';
+      const dateText = fee.date ? new Date(fee.date).toLocaleDateString() : '';
+      tr.innerHTML = `
+        <td style="font-weight:700;">${escapeHtml(fee.studentName)}</td>
+        <td>${escapeHtml(fee.studentRoll)}</td>
+        <td>${escapeHtml(fee.class || '')}</td>
+        <td>₹${fee.amount ? fee.amount : '-'}</td>
+        <td class="muted">${dateText}</td>
+        <td style="text-align:center;">
+          <button class="status-btn ${fee.status === 'paid' ? 'status-paid' : 'status-pending'}" data-id="${fee.id}">
+            ${fee.status === 'paid' ? 'Paid' : 'Pending'}
+          </button>
+        </td>
+      `;
+      feesTbody.appendChild(tr);
+      setTimeout(() => tr.classList.add('show'), 30 + idx * 30);
+    });
+
+    // status toggle
+    document.querySelectorAll('.status-btn').forEach(btn => {
+      btn.onclick = () => {
+        const id = btn.dataset.id;
+        const updated = fees.map(f =>
+          f.id === id ? { ...f, status: f.status === 'paid' ? 'pending' : 'paid' } : f
+        );
+        saveFees(updated);
+      };
+    });
+  }
+
+  // escape helper
+  function escapeHtml(str) {
+    if (typeof str !== 'string') return '';
+    return str.replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+  }
+
+  // open/close form animations
+  function showFormPanel() {
+    formPanel.style.display = 'block';
+    requestAnimationFrame(() => formPanel.classList.add('show'));
+    studentRollInput.focus();
+  }
+  function hideFormPanel() {
+    formPanel.classList.remove('show');
+    setTimeout(() => (formPanel.style.display = 'none'), 220);
+    feeForm.reset();
+    dateInput.value = today;
+  }
+
+  // add new fee
+  feeForm.addEventListener('submit', e => {
+    e.preventDefault();
+    const studentRoll = studentRollInput.value.trim();
+    const studentName = studentNameInput.value.trim();
+    const amount = parseFloat(amountInput.value) || 0;
+    const date = dateInput.value || today;
+    const status = statusInput.value || 'pending';
+    const classVal = classInput.value.trim();
+
+    if (!studentRoll || !studentName) {
+      alert('Please fill Student Roll and Student Name.');
+      return;
+    }
+
+    const newFee = {
+      id: Date.now().toString(),
+      studentRoll,
+      studentName,
+      amount,
+      status,
+      date,
+      class: classVal,
+    };
+
+    // add to list and update UI instantly
+    const updatedFees = [...fees, newFee];
+    saveFees(updatedFees);
+    hideFormPanel();
+  });
+
+  // open/close bindings
+  openFormBtn.addEventListener('click', showFormPanel);
+  closeForm.addEventListener('click', hideFormPanel);
+  cancelBtn.addEventListener('click', hideFormPanel);
+
+  // search binding
+  searchInput.addEventListener('input', renderAll);
+
+  // initial render
+  (function init() {
+    if (!Array.isArray(fees)) fees = [];
+    renderAll();
+    setTimeout(() => tableCard.classList.add('show'), 40);
+  })();
+
+  // clear helper (optional)
+  window.clearFees = function () {
+    if (confirm('Clear all fee records from localStorage?')) {
+      localStorage.removeItem('fees');
+      fees = [];
+      renderAll();
+    }
+  };
+</script>
+</body>
+</html>

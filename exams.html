@@ -1,0 +1,494 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="icon" type="image/png" href="icons/favicon.png">
+  <title>Exams — Smart School</title>
+  <style>
+    /* -------------------------
+       Reset & base
+       ------------------------- */
+    *, *::before, *::after { box-sizing: border-box; }
+    html,body { height:100%; }
+    body {
+      margin:0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background: #f8fafc; /* Tailwind gray-50 */
+      color: #0f172a; /* gray-900 */
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      line-height:1.3;
+    }
+    a { text-decoration:none; }
+    img { max-width:100%; display:block; }
+
+    /* -------------------------
+       Navbar
+       ------------------------- */
+    .navbar {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      backdrop-filter: blur(5px);
+      background: rgba(255,255,255,0.8);
+      border-bottom: 1px solid #e0e7ff; /* indigo-100 */
+      box-shadow: 0 2px 4px rgba(15,23,42,0.05);
+    }
+    .nav-container { max-width:1280px; margin:0 auto; padding:0 1rem; display:flex; justify-content:space-between; align-items:center; height:4rem; }
+    .logo { display:flex; align-items:center; gap:0.75rem; }
+    .logo-icon { width:2.5rem; height:2.5rem; display:flex; align-items:center; justify-content:center; border-radius:0.5rem; background: linear-gradient(135deg,#4f46e5,#7c3aed); color:#fff; box-shadow:0 4px 12px rgba(0,0,0,0.1); }
+    .logo h1 { font-size:1.125rem; font-weight:700; background:linear-gradient(90deg,#4f46e5,#7c3aed); color:transparent; -webkit-background-clip:text; }
+
+    .nav-links { display:flex; gap:0.25rem; }
+    .nav-links a { display:flex; align-items:center; gap:0.5rem; padding:0.5rem 1rem; border-radius:0.5rem; font-size:0.875rem; transition:all 0.3s; color:#4b5563; }
+    .nav-links a.active { background: linear-gradient(90deg,#4f46e5,#7c3aed); color:#fff; box-shadow:0 4px 12px rgba(79,70,229,0.2); }
+
+    /* -------------------------
+       Container
+       ------------------------- */
+    .container {
+      padding: 1.5rem; /* p-6 */
+      max-width: 1280px; /* approx max-w-7xl */
+      margin: 0 auto;
+    }
+
+      /* -------------------------
+       Page header
+       ------------------------- */
+    .page-head { display:flex; flex-direction:column; gap:0.5rem; }
+    @media(min-width:768px) { .page-head { flex-direction:row; justify-content:space-between; align-items:center; } }
+    .page-title {
+      font-size:2.25rem; /* text-4xl scaled down for header */
+      font-weight:700;
+      margin: 0 0 1rem 0;
+      background-image: linear-gradient(90deg,#4f46e5,#7c3aed);
+      -webkit-background-clip:text;
+      background-clip:text;
+      color:transparent;
+      -webkit-text-fill-color:transparent;
+    }
+    .page-sub { color:#475569; margin:0; }
+
+    /* -------------------------
+        Buttons, inputs & small UI
+       ------------------------- */
+    .btn {
+      display:inline-flex;
+      align-items:center;
+      gap:0.5rem;
+      padding:0.5rem 0.9rem;
+      border-radius:0.6rem;
+      border:none;
+      cursor:pointer;
+      font-weight:600;
+    }
+    .btn-primary {
+      background: linear-gradient(90deg,#4f46e5,#7c3aed);
+      color:#fff;
+      box-shadow:0 8px 20px rgba(79,70,229,0.12);
+      transition: transform .15s ease, box-shadow .15s ease;
+    }
+    .btn-primary:hover { transform: translateY(-2px); }
+    .btn-outline {
+      background: #fff;
+      border:1px solid #e6edf9;
+      color:#374151;
+    }
+
+    /* -------------------------
+       Form card (matches JSX styles & animation)
+       ------------------------- */
+    .form-card { border:1px solid rgba(79,70,229,0.06); padding:1rem; margin-bottom:1rem; border-radius:1rem; }
+    .form-grid { display:grid; gap:1rem; grid-template-columns:1fr; }
+    @media(min-width:768px){ .form-grid{ grid-template-columns: repeat(2, 1fr); } }
+
+    input[type="text"], input[type="date"], select {
+      width:100%;
+      padding:0.56rem 0.75rem;
+      border-radius:0.6rem;
+      border:1px solid #e6edf9;
+      outline:none;
+      font-size:0.95rem;
+    }
+    .relative { position:relative; }
+    .icon-left {
+      position:absolute;
+      left:0.9rem;
+      top:50%;
+      transform:translateY(-50%);
+      font-size:0.95rem;
+      color:#94a3b8;
+      pointer-events:none;
+    }
+    .pl-10 { padding-left:2.6rem; }
+
+    .form-actions { display:flex; justify-content:flex-end; gap:0.7rem; grid-column:1/-1; }
+
+    /* -------------------------
+       Cards (upcoming exams)
+       ------------------------- */
+    .grid-cards { display:grid; gap:1rem; grid-template-columns:1fr; margin-top:0.8rem; }
+    @media(min-width:768px){ .grid-cards { grid-template-columns:repeat(2,1fr); } }
+    @media(min-width:1024px){ .grid-cards { grid-template-columns:repeat(3,1fr); } }
+
+    .exam-card {
+    background: linear-gradient(to bottom right, #ffffff, #eef2ff);
+    border-radius: 1rem; /* rounded-2xl */
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.1);
+    border: 1px solid #e0e7ff;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    }
+
+    .exam-card:hover {
+    box-shadow: 0 8px 20px rgba(99, 102, 241, 0.2);
+    transform: scale(1.02);
+    }
+
+    /* Gradient header */
+    .exam-header {
+    background: linear-gradient(to right, #4f46e5, #7c3aed);
+    color: white;
+    padding: 1rem;
+    }
+
+    .date-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    }
+
+    /* Date texts */
+    .exam-day {
+    font-size: 1.875rem; /* text-3xl */
+    font-weight: bold;
+    }
+
+    .exam-header p {
+    margin: 0;
+    line-height: 1.2;
+    }
+
+    /* Delete button */
+    .delete-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    border-radius: 0.5rem;
+    padding: 0.5rem;
+    opacity: 0;
+    transition: opacity 0.3s ease, background 0.3s ease;
+    }
+
+    .exam-card:hover .delete-btn {
+    opacity: 1;
+    }
+
+    .delete-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    }
+
+    /* Body section */
+    .exam-body {
+    padding: 0 1.5rem 1.5rem 1.5rem;
+    }
+
+    .exam-title {
+    font-size: 1.25rem; /* text-xl */
+    font-weight: bold;
+    color: #1f2937; /* text-gray-800 */
+    margin-bottom: 0.5rem;
+    }
+
+    .exam-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #4b5563; /* text-gray-600 */
+    font-size: 0.875rem;
+    }
+
+    /* Muted text */
+    .muted {
+    opacity: 0.85;
+    }
+
+    /* Class badge */
+    .date-row > div:last-child div {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    color: #fff;
+    }
+
+
+    /* -------------------------
+       Empty / helper text
+       ------------------------- */
+    .empty { padding:2.5rem; text-align:center; color:#94a3b8; }
+
+    /* -------------------------
+       Animations (framer-like)
+       ------------------------- */
+    .enter-up { opacity:0; transform: translateY(-12px); }
+    .enter-left { opacity:0; transform: translateX(-20px); }
+    .enter-scale { opacity:0; transform: scale(.95); }
+    .enter-show {
+      opacity:1!important;
+      transform: none!important;
+      transition: all .45s cubic-bezier(.2,.9,.3,1);
+    }
+
+    /* small helpers */
+    .mb-6 { margin-bottom:1.5rem; }
+    .gap-2 { gap:0.5rem; }
+    .rounded { border-radius:0.5rem; }
+
+    @media(min-width:1024px) { .container{ padding:2rem; } }
+  </style>
+</head>
+<body>
+    <!-- Navbar -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="logo">
+        <div class="logo-icon">
+          <img src="icons/school-stroke-rounded.svg">
+        </div>
+        <div>
+          <h1>Smart School Management System</h1>
+        </div>
+      </div>
+      <div class="nav-links">
+        <a href="dashboard.html">Dashboard</a>
+        <a href="students.html">Students</a>
+        <a href="teachers.html">Teachers</a>
+        <a href="attendance.html">Attendance</a>
+        <a href="exams.html" class="active">Exams</a>
+        <a href="fees.html">Fees</a>
+        <a href="about.html">About</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container">
+    <!-- Header -->
+    <div class="page-head mb-6">
+      <div>
+        <h2 class="page-title">Exams</h2>
+        <p class="page-sub">Schedule and manage examinations</p>
+      </div>
+
+      <div style="display:flex; gap:0.75rem; margin-top:0.5rem;">
+        <button id="openFormBtn" class="btn btn-primary" title="Add exam">
+          <img src="icons/plus-sign-stroke-rounded.svg">
+          Add Exam
+        </button>
+      </div>
+    </div>
+
+    <!-- Add/Edit Form (hidden by default) -->
+    <div id="formCard" class="form-card enter-up" style="display:none; margin-bottom:1rem;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+        <h3 id="formTitle" style="margin:0; font-size:1.1rem; font-weight:700;">Add New Exam</h3>
+        <button id="closeFormBtn" style="background:transparent;border:none;cursor:pointer;font-size:20px;color:#6b7280;" title="Close">
+            <img src="icons/cancel-01-stroke-rounded.svg">
+        </button>
+      </div>
+
+      <form id="examForm" class="form-grid" autocomplete="off">
+        <input id="examName" type="text" placeholder="Exam Name" required />
+        <input id="examSubject" type="text" placeholder="Subject" required />
+        <input id="examClass" type="text" placeholder="Class: e.g. 12" required />
+        <input id="examDate" type="date" class="pl-10" required />
+
+        <div class="form-actions">
+          <button type="button" id="cancelBtn" class="btn" style="background:#fff;border:1px solid #e6edf9;">Cancel</button>
+          <button type="submit" class="btn btn-primary">Add Exam</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Upcoming Exams -->
+    <section id="upcomingSection" style="margin-top:0.5rem;">
+      <h2 style="margin:0 0 0.75rem 0; font-size:1.5rem; font-weight:700; color:#0f172a; display:flex; align-items:center; gap:0.6rem;">
+        <img src="icons/calendar-04-stroke-rounded.svg">
+        Upcoming Exams
+      </h2>
+
+      <div id="upcomingGrid" class="grid-cards"></div>
+      <div id="upcomingEmpty" class="empty" style="display:none; margin-top:0.75rem;">No upcoming exams scheduled</div>
+    </section>
+  </div>
+
+  <script>
+    // LocalStorage key: "exams"
+    // exam object: { id, name, subject, date (YYYY-MM-DD), class }
+
+    const openFormBtn = document.getElementById('openFormBtn');
+    const formCard = document.getElementById('formCard');
+    const closeFormBtn = document.getElementById('closeFormBtn');
+    const cancelBtn = document.getElementById('cancelBtn');
+    const examForm = document.getElementById('examForm');
+    const examName = document.getElementById('examName');
+    const examSubject = document.getElementById('examSubject');
+    const examClass = document.getElementById('examClass');
+    const examDate = document.getElementById('examDate');
+
+    const upcomingGrid = document.getElementById('upcomingGrid');
+    const upcomingEmpty = document.getElementById('upcomingEmpty');
+
+    let exams = [];
+
+    // Helpers - load & save
+    function loadExams() {
+      exams = JSON.parse(localStorage.getItem('exams') || '[]');
+    }
+    function saveExams() {
+      localStorage.setItem('exams', JSON.stringify(exams));
+    }
+
+    // Open/close form with animation
+    function showForm() {
+      formCard.style.display = 'block';
+      formCard.classList.remove('enter-up');
+      formCard.classList.add('enter-up');
+      setTimeout(() => formCard.classList.add('enter-show'), 20);
+      examName.focus();
+    }
+    function hideForm() {
+      formCard.classList.remove('enter-show');
+      setTimeout(() => { formCard.style.display = 'none'; }, 280);
+      examForm.reset();
+    }
+
+    openFormBtn.addEventListener('click', () => {
+      showForm();
+    });
+    closeFormBtn.addEventListener('click', hideForm);
+    cancelBtn.addEventListener('click', hideForm);
+
+    // Add exam form submit
+    examForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = examName.value.trim();
+      const subject = examSubject.value.trim();
+      const cls = examClass.value.trim();
+      const date = examDate.value;
+
+      if (!name || !subject || !cls || !date) {
+        alert('Please fill all fields');
+        return;
+      }
+
+      const newExam = { id: Date.now().toString(), name, subject, class: cls, date };
+      exams.push(newExam);
+      saveExams();
+      renderAll();
+      hideForm();
+    });
+
+    // Render functions
+    function renderAll() {
+      // sort by date asc
+      const sorted = [...exams].sort((a,b) => new Date(a.date) - new Date(b.date));
+      const today = new Date().toISOString().split('T')[0];
+
+      const upcoming = sorted.filter(ex => ex.date >= today);
+
+      renderUpcoming(upcoming);
+    }
+
+    function renderUpcoming(list) {
+      upcomingGrid.innerHTML = '';
+      if (!list.length) {
+        upcomingEmpty.style.display = 'block';
+        return;
+      } else {
+        upcomingEmpty.style.display = 'none';
+      }
+
+      list.forEach((exam, idx) => {
+        const dt = new Date(exam.date);
+        const weekday = dt.toLocaleDateString('en-US', { weekday: 'long' });
+        const dayNum = dt.getDate();
+        const monthYear = dt.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+        const card = document.createElement('div');
+        card.className = 'exam-card enter-scale';
+        card.dataset.delay = (idx * 0.06);
+
+       card.classList.add("exam-card");
+        card.innerHTML = `
+        <div class="exam-header">
+            <div class="date-row">
+            <div>
+                <p>${weekday}</p>
+                <p class="exam-day">${dayNum}</p>
+                <p style="opacity:.9; font-size:.92rem;">${monthYear}</p>
+            </div>
+            <div style="display:flex; flex-direction:column; align-items:flex-end; gap:0.4rem;">
+                <button class="delete-btn" data-id="${exam.id}" title="Delete">
+                <img src="icons/delete-02-stroke-rounded.svg" />
+                </button>
+                <div>Class ${escapeHtml(exam.class)}</div>
+            </div>
+            </div>
+        </div>
+        <div class="exam-body">
+            <h3 class="exam-title">${escapeHtml(exam.name)}</h3>
+            <div class="exam-meta">
+                <img src="icons/book-open-01-stroke-rounded.svg">
+                <span class="muted">
+                    ${escapeHtml(exam.subject)}
+                </span>
+            </div>
+        </div>
+        `;
+
+        upcomingGrid.appendChild(card);
+
+        // animate in (mimic framer-motion)
+        setTimeout(() => card.classList.add('enter-show'), 40 + idx * 80);
+      });
+
+      // wire delete buttons
+      upcomingGrid.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const id = btn.dataset.id;
+          if (confirm('Are you sure you want to delete this exam?')) {
+            exams = exams.filter(x => x.id !== id);
+            saveExams();
+            renderAll();
+          }
+        });
+      });
+    }
+
+    // Escape html
+    function escapeHtml(str) {
+      if (typeof str !== 'string') return '';
+      return str.replace(/[&<>"']/g, (m) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+    }
+
+    // Initialize: load, set date to today in form, render
+    document.addEventListener('DOMContentLoaded', () => {
+      loadExams();
+
+      // prefill date input to today
+      const today = new Date().toISOString().split('T')[0];
+      examDate.value = today;
+
+      renderAll();
+
+      // small reveal for any static enter-up elements
+      document.querySelectorAll('.enter-up, .enter-left, .enter-scale').forEach((el, i) => {
+        setTimeout(() => el.classList.add('enter-show'), 50 + i * 40);
+      });
+    });
+
+  </script>
+</body>
+</html>

@@ -1,0 +1,586 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="icon" type="image/png" href="icons/favicon.png">
+  <title>Dashboard — Smart School</title>
+  <style>
+    /* -------------------------
+       Reset & base
+       ------------------------- */
+    *, *::before, *::after { box-sizing: border-box; }
+    html,body { height:100%; }
+    body {
+      margin:0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background: #f8fafc; /* Tailwind gray-50 */
+      color: #0f172a; /* gray-900 */
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      line-height:1.3;
+    }
+    a { text-decoration:none; }
+    img { max-width:100%; display:block; }
+
+    /* -------------------------
+       Navbar
+       ------------------------- */
+    .navbar {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      backdrop-filter: blur(5px);
+      background: rgba(255,255,255,0.8);
+      border-bottom: 1px solid #e0e7ff; /* indigo-100 */
+      box-shadow: 0 2px 4px rgba(15,23,42,0.05);
+    }
+    .nav-container { max-width:1280px; margin:0 auto; padding:0 1rem; display:flex; justify-content:space-between; align-items:center; height:4rem; }
+    .logo { display:flex; align-items:center; gap:0.75rem; }
+    .logo-icon { width:2.5rem; height:2.5rem; display:flex; align-items:center; justify-content:center; border-radius:0.5rem; background: linear-gradient(135deg,#4f46e5,#7c3aed); color:#fff; box-shadow:0 4px 12px rgba(0,0,0,0.1); }
+    .logo h1 { font-size:1.125rem; font-weight:700; background:linear-gradient(90deg,#4f46e5,#7c3aed); color:transparent; -webkit-background-clip:text; }
+
+    .nav-links { display:flex; gap:0.25rem; }
+    .nav-links a { display:flex; align-items:center; gap:0.5rem; padding:0.5rem 1rem; border-radius:0.5rem; font-size:0.875rem; transition:all 0.3s; color:#4b5563; }
+    .nav-links a.active { background: linear-gradient(90deg,#4f46e5,#7c3aed); color:#fff; box-shadow:0 4px 12px rgba(79,70,229,0.2); }
+
+    /* -------------------------
+       Container
+       ------------------------- */
+    .container {
+      padding: 1.5rem; /* p-6 */
+      max-width: 1280px; /* approx max-w-7xl */
+      margin: 0 auto;
+    }
+
+    /* -------------------------
+       Utility-ish classes (extracted from Tailwind used)
+       ------------------------- */
+
+    /* Headings */
+    .title {
+      font-size: 2.25rem; /* text-4xl */
+      line-height: 1.1;
+      font-weight: 700;
+      margin: 0 0 0.5rem 0;
+      display: inline-block;
+      background-image: linear-gradient(90deg,#4f46e5,#7c3aed); /* indigo -> purple */
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      -webkit-text-fill-color: transparent;
+    }
+    .muted { color: #475569; /* gray-600 */ font-size: 1rem; }
+
+    /* Grid for stat cards (responsive) */
+    .stats-grid {
+      display: grid;
+      gap: 1.5rem; /* gap-6 */
+      grid-template-columns: 1fr;
+      margin-bottom: 2rem; /* mb-8 */
+    }
+    @media(min-width: 768px) { /* md */
+      .stats-grid { grid-template-columns: repeat(2,1fr); }
+    }
+    @media(min-width: 1024px) { /* lg */
+      .stats-grid { grid-template-columns: repeat(4,1fr); }
+    }
+
+    /* Card base (StatsCard) */
+    .card {
+      position: relative;
+      overflow: hidden;
+      background: #fff;
+      border-radius: 1rem; /* rounded-2xl */
+      box-shadow: 0 6px 18px rgba(15,23,42,0.08);
+      transition: box-shadow .3s ease, transform .25s ease;
+      cursor: default;
+      display:flex;
+      flex-direction:column;
+    }
+    .card:hover { box-shadow: 0 10px 30px rgba(15,23,42,0.12); transform: translateY(-2px); }
+
+    /* card top decorative circle (faint) */
+    .card-deco {
+      position: absolute;
+      top: -2rem;
+      right: -1.5rem;
+      width: 8rem;
+      height: 8rem;
+      opacity: 0.08;
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .card-inner { padding: 1.5rem; /* p-6 */ position: relative; z-index: 2; }
+
+    /* icon container */
+    .icon-wrap {
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding: .75rem; /* p-3 */
+      border-radius: .75rem; /* rounded-xl */
+      background-origin: border-box;
+      transition: transform .3s ease;
+      width: fit-content;
+    }
+    .card:hover .icon-wrap { transform: scale(1.10); } /* group-hover:scale-110 */
+
+    /* title and value */
+    .stat-title { font-size:.75rem; font-weight:600; color:#64748b; letter-spacing:.08em; text-transform:uppercase; }
+    .stat-value {
+      font-size:2.25rem; /* text-4xl */
+      font-weight:700;
+      margin: .25rem 0 0 0;
+      display:inline-block;
+      background-image: linear-gradient(90deg,#4f46e5,#7c3aed);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      -webkit-text-fill-color: transparent;
+    }
+
+    /* gradient bottom hover bar */
+    .card-bottom {
+      height: 4px;
+      width: 100%;
+      opacity: 0;
+      transition: opacity .3s ease;
+      border-radius: 0 0 .75rem .75rem;
+    }
+    .card:hover .card-bottom { opacity: 1; }
+
+    /* Upcoming events card style */
+    .panel {
+      background: #fff;
+      border-radius: 1rem;
+      box-shadow: 0 6px 22px rgba(15,23,42,0.06);
+      padding: 1.5rem;
+    }
+
+    .panel .panel-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:1.25rem; }
+    .panel h2 { margin:0; font-size:1.25rem; font-weight:700; color:#0f172a; }
+    .panel .small-icon { width:1.5rem; height:1.5rem; display:inline-block; }
+
+    .events-list { display:flex; flex-direction:column; gap:1rem; }
+    .event-item {
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding: 1rem;
+      border-radius: .75rem;
+      border: 1px solid rgba(79,70,229,0.08); /* indigo-100-ish */
+      background: linear-gradient(90deg,#eef2ff,#f5f3ff); /* indigo-50 to purple-50 imitation */
+      transition: box-shadow .25s ease, transform .25s ease;
+    }
+    .event-item:hover { box-shadow: 0 8px 24px rgba(15,23,42,0.06); transform: translateY(-2px); }
+
+    .event-left { display:flex; align-items:center; gap:1rem; }
+    .event-date-circle {
+      min-width:3rem; min-height:3rem;
+      display:flex; align-items:center; justify-content:center;
+      border-radius:.5rem;
+      color: #fff;
+      font-weight:700;
+      box-shadow: 0 6px 16px rgba(99,102,241,0.18);
+    }
+    .event-title { margin:0; font-weight:600; color:#0f172a; }
+    .event-type { margin:0; font-size:.875rem; color:#64748b; }
+
+    .event-right { text-align:right; }
+
+    /* Quick Actions (purple gradient big box) */
+    .quick {
+      margin-top: 2rem;
+      padding: 2rem;
+      border-radius: 1rem;
+      box-shadow: 0 10px 30px rgba(99,102,241,0.08);
+      color: #fff;
+      background-image: linear-gradient(90deg,#4f46e5,#7c3aed);
+    }
+    .quick h2 { margin:0 0 .75rem 0; font-size:1.25rem; font-weight:700; }
+    .quick-grid { display:grid; gap:1rem; grid-template-columns:1fr; font-size:.95rem; }
+    @media(min-width:768px) { .quick-grid { grid-template-columns: repeat(3,1fr); } }
+    .quick-card {
+      background: rgba(255,255,255,0.08);
+      border-radius:.75rem;
+      padding:1rem;
+      backdrop-filter: blur(6px);
+    }
+    .quick-card h3 { margin:0 0 .5rem 0; font-weight:700; }
+    .quick-card p { margin:0; color: rgba(255,255,255,0.85); }
+
+    /* -------------------------
+       Icon sizes and SVG tweaks
+       ------------------------- */
+    .svg-icon { width: 1.25rem; height:1.25rem; display:inline-block; vertical-align:middle; }
+    .svg-large { width: 1.5rem; height:1.5rem; }
+    .icon-fill-current { fill: currentColor; }
+    .icon-stroke-current { stroke: currentColor; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; fill:none; }
+
+    /* -------------------------
+       Animations (Framer Motion mimic)
+       - We'll add 'enter' class with transition/transform
+       ------------------------- */
+    .enter {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    .enter-left {
+      opacity: 0;
+      transform: translateX(-20px);
+    }
+    .enter-show {
+      opacity: 1 !important;
+      transform: translateX(0) translateY(0) !important;
+      transition: transform .5s cubic-bezier(.2,.9,.3,1), opacity .45s cubic-bezier(.2,.9,.3,1);
+    }
+
+    /* small helpers */
+    .flex { display:flex; }
+    .items-center { align-items:center; }
+    .justify-between { justify-content:space-between; }
+    .space-y-1 > * + * { margin-top: .25rem; }
+
+    /* small responsive tweaks for overall spacing */
+    @media(min-width:1024px) {
+      .container { padding: 2rem; }
+    }
+
+    /* subtle text color overrides */
+    .text-indigo { color: #4f46e5; } /* indigo-600 */
+    .text-gray-500 { color:#6b7280; } /* gray-500 */
+    .text-indigo-600 { color:#4f46e5; }
+  </style>
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="logo">
+        <div class="logo-icon">
+          <img src="icons/school-stroke-rounded.svg">
+        </div>
+        <div>
+          <h1>Smart School Management System</h1>
+        </div>
+      </div>
+      <div class="nav-links">
+        <a href="dashboard.html" class="active">Dashboard</a>
+        <a href="students.html">Students</a>
+        <a href="teachers.html">Teachers</a>
+        <a href="attendance.html">Attendance</a>
+        <a href="exams.html">Exams</a>
+        <a href="fees.html">Fees</a>
+        <a href="about.html">About</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container">
+    <!-- Header -->
+    <div id="header" class="mb-8 enter">
+      <h1 class="title">Dashboard</h1>
+      <p class="muted">Welcome to your school management system</p>
+    </div>
+
+    <!-- Stats Grid -->
+    <div id="statsGrid" class="stats-grid"></div>
+
+    <!-- Upcoming Events -->
+    <div id="upcomingPanel" class="panel enter-left" style="margin-bottom:1.5rem;">
+      <div class="panel-header">
+        <h2>Upcoming Events</h2>
+        <!-- Calendar icon (inline SVG) -->
+        <img src="icons/calendar-04-stroke-rounded.svg">
+      </div>
+
+      <div id="eventsList" class="events-list"></div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div id="quick" class="quick enter">
+      <h2>Quick Start Guide</h2>
+      <div class="quick-grid">
+        <div class="quick-card">
+          <h3>1. Add Students</h3>
+          <p>Navigate to Students page to add and manage student records</p>
+        </div>
+        <div class="quick-card">
+          <h3>2. Add Teachers</h3>
+          <p>Go to Teachers section to maintain staff information</p>
+        </div>
+        <div class="quick-card">
+          <h3>3. Track Attendance</h3>
+          <p>Use Attendance page to mark daily student presence</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /***********************************************************************
+     * Standalone Dashboard JS
+     * - Recreates StatsCard + Dashboard logic
+     * - Uses localStorage keys: "students", "teachers", "exams" (same as React)
+     * - Animations: adds "enter-show" classes with delay to mimic framer-motion
+     ***********************************************************************/
+    const today = new Date().toISOString().split('T')[0];
+    function calculateOverallAttendance() {
+
+    // Use today's date by default if not passed
+    const selectedDate = today;
+
+    let totalPresent = 0;
+    let totalStudents = 0;
+
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+
+      // Check if key is an attendance entry for this date
+      if (key.startsWith("attendance_") && key.endsWith(`_${selectedDate}`)) {
+        const record = JSON.parse(localStorage.getItem(key) || '{}');
+
+        const presentCount = Object.values(record).filter(v => v === true).length;
+        const totalCount = Object.keys(record).length;
+
+        totalPresent += presentCount;
+        totalStudents += totalCount;
+      }
+    }
+
+    const percentage = totalStudents > 0 ? ((totalPresent / totalStudents) * 100).toFixed(2) : 0;
+    return percentage;
+  }
+
+    // ---------- StatsCard builder (pure DOM) ----------
+    function createStatsCard({ title, value, iconSVG, gradientClass, delay = 0 }) {
+      // gradientClass will be a string identifying which gradient to use.
+      // We'll map gradients to inline gradient styles
+      const gradients = {
+        blue: 'linear-gradient(135deg,#3b82f6,#2563eb)', /* from-blue-500 to-blue-600 */
+        purple: 'linear-gradient(135deg,#8b5cf6,#7c3aed)', /* from-purple-500 to-purple-600 */
+        pink: 'linear-gradient(135deg,#ec4899,#db2777)', /* from-pink-500 to-pink-600 */
+        green: 'linear-gradient(135deg,#10b981,#059669)' /* from-green-500 to-green-600 */
+      };
+
+      const deco = document.createElement('div');
+      deco.className = 'card-deco';
+      deco.style.background = gradients[gradientClass] || gradients.blue;
+
+      const card = document.createElement('div');
+      card.className = 'card enter';
+      // inner content
+      const inner = document.createElement('div');
+      inner.className = 'card-inner';
+
+      // top row
+      const topRow = document.createElement('div');
+      topRow.style.display = 'flex';
+      topRow.style.alignItems = 'center';
+      topRow.style.justifyContent = 'space-between';
+      topRow.style.marginBottom = '1rem';
+
+      const iconWrap = document.createElement('div');
+      iconWrap.className = 'icon-wrap';
+      iconWrap.style.background = gradients[gradientClass] ? gradients[gradientClass] : gradients.blue;
+      iconWrap.style.backgroundBlendMode = 'normal';
+      // svg icon (inserted inside)
+      const iconContainer = document.createElement('div');
+      iconContainer.innerHTML = iconSVG;
+      // Set svg stroke color to the gradient's darker tone for better matching:
+      // We use currentColor mechanism by wrapping; but simpler: style color
+      iconContainer.querySelectorAll('svg').forEach(s => {
+        s.style.width = '1.5rem';
+        s.style.height = '1.5rem';
+        s.style.color = '#4f46e5';
+        s.style.opacity = '1';
+      });
+
+      iconWrap.appendChild(iconContainer);
+      topRow.appendChild(iconWrap);
+
+      // title & value
+      const textBlock = document.createElement('div');
+      textBlock.className = 'space-y-1';
+
+      const tTitle = document.createElement('p');
+      tTitle.className = 'stat-title';
+      tTitle.textContent = title;
+
+      const tValue = document.createElement('p');
+      tValue.className = 'stat-value';
+      tValue.textContent = value;
+
+      textBlock.appendChild(tTitle);
+      textBlock.appendChild(tValue);
+
+      inner.appendChild(topRow);
+      inner.appendChild(textBlock);
+
+      // bottom gradient bar
+      const bottomBar = document.createElement('div');
+      bottomBar.className = 'card-bottom';
+      bottomBar.style.background = gradients[gradientClass] || gradients.blue;
+
+      // append everything
+      card.appendChild(deco);
+      card.appendChild(inner);
+      card.appendChild(bottomBar);
+
+      // animation delay: add data attribute and let init function reveal with delay
+      card.dataset.delay = String(delay || 0);
+
+      // allow updating displayed value (useful if localStorage changes)
+      card.updateValue = function(newVal) {
+        tValue.textContent = newVal;
+      };
+
+      return card;
+    }
+
+    // ---------- Dashboard data and rendering ----------
+    // Use the same upcomingEvents array from your React code
+    const upcomingEventsSource = [
+      { id: 1, title: "Annual Sports Day", date: "2025-12-03", type: "Event" },
+      { id: 2, title: "Parent-Teacher Meeting", date: "2025-12-05", type: "Meeting" },
+      { id: 3, title: "Science Exhibition", date: "2026-02-05", type: "Event" },
+    ];
+
+    function loadStatsFromStorage() {
+      const students = JSON.parse(localStorage.getItem("students") || "[]");
+      const teachers = JSON.parse(localStorage.getItem("teachers") || "[]");
+
+      return {
+        totalStudents: students.length,
+        totalTeachers: teachers.length,
+        upcomingEvents: upcomingEventsSource.length,
+        attendance: students.length > 0 ? calculateOverallAttendance() + "%" : "N/A"
+      };
+    }
+
+    function formatPrettyDateYMD(dateStr) {
+      // returns "Mon dd, yyyy" like your React toLocaleDateString('en-US', ...)
+      const d = new Date(dateStr);
+      if (isNaN(d)) return dateStr;
+      return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    }
+
+    function renderStatsAndEvents() {
+      const statsGrid = document.getElementById('statsGrid');
+      statsGrid.innerHTML = ''; // clear
+
+      const stats = loadStatsFromStorage();
+
+      // Create cards (order & gradients same as React)
+      const cardDefs = [
+        { title: 'Total Students', value: stats.totalStudents, icon: `<img src="icons/students-stroke-rounded.svg">`, gradient: 'blue', delay: 0 },
+        { title: 'Total Teachers', value: stats.totalTeachers, icon: `<img src="icons/mortarboard-01-stroke-rounded.svg">`, gradient: 'purple', delay: 0.1 },
+        { title: 'Upcoming Events', value: stats.upcomingEvents, icon: `<img src="icons/calendar-04-stroke-rounded.svg">`, gradient: 'pink', delay: 0.2 },
+        { title: 'Attendance Rate', value: stats.attendance, icon: `<img src="icons/arrow-up-right-01-stroke-rounded.svg">`, gradient: 'green', delay: 0.3 },
+      ];
+
+      // append to grid
+      cardDefs.forEach(def => {
+        const c = createStatsCard({
+          title: def.title,
+          value: def.value,
+          iconSVG: def.icon,
+          gradientClass: def.gradient,
+          delay: def.delay
+        });
+        statsGrid.appendChild(c);
+      });
+
+      renderEvents(upcomingEventsSource);
+      // trigger animations reveal
+      triggerEntranceAnimations();
+    }
+
+    function renderEvents(events) {
+      const list = document.getElementById('eventsList');
+      list.innerHTML = '';
+      events.forEach((ev, index) => {
+        const item = document.createElement('div');
+        item.className = 'event-item enter-left';
+        item.dataset.delay = String(0.5 + index * 0.1);
+
+        const left = document.createElement('div');
+        left.className = 'event-left';
+
+        const dateCircle = document.createElement('div');
+        dateCircle.className = 'event-date-circle';
+        dateCircle.style.background = 'linear-gradient(135deg,#4f46e5,#7c3aed)'; // indigo->purple
+        dateCircle.textContent = String(new Date(ev.date).getDate());
+
+        const meta = document.createElement('div');
+        const h3 = document.createElement('h3');
+        h3.className = 'event-title';
+        h3.textContent = ev.title;
+        const p = document.createElement('p');
+        p.className = 'event-type';
+        p.textContent = ev.type;
+
+        meta.appendChild(h3);
+        meta.appendChild(p);
+
+        left.appendChild(dateCircle);
+        left.appendChild(meta);
+
+        const right = document.createElement('div');
+        right.className = 'event-right';
+        const d = document.createElement('p');
+        d.style.margin = 0;
+        d.style.fontWeight = 600;
+        d.style.color = '#4f46e5';
+        d.textContent = formatPrettyDateYMD(ev.date);
+
+        right.appendChild(d);
+
+        item.appendChild(left);
+        item.appendChild(right);
+
+        list.appendChild(item);
+      });
+    }
+
+    // ---------- Entrance animations (mimic framer-motion delays) ----------
+    function triggerEntranceAnimations() {
+      // find all with class enter or enter-left and reveal them with their data-delay
+      const entrants = document.querySelectorAll('.enter, .enter-left');
+      entrants.forEach((el, i) => {
+        const delay = parseFloat(el.dataset.delay || (i * 0.05)) * 1000;
+        // set initial style from CSS (already set: enter / enter-left)
+        setTimeout(() => {
+          el.classList.add('enter-show');
+        }, delay);
+      });
+    }
+
+    // ---------- Initialize ----------
+    document.addEventListener('DOMContentLoaded', () => {
+      renderStatsAndEvents();
+
+      // header and quick already have enter classes — ensure they animate too with small delays
+      document.getElementById('header').dataset.delay = 0;
+      document.getElementById('quick').dataset.delay = 0.6;
+      // also upcomingPanel
+      document.getElementById('upcomingPanel').dataset.delay = 0.4;
+      triggerEntranceAnimations();
+
+      // If localStorage changes externally (e.g., user adds students in another UI),
+      // you can call renderStatsAndEvents() again to refresh the numbers.
+      // For demo convenience, expose a global function:
+      window.refreshDashboard = renderStatsAndEvents;
+    });
+
+    // ---------- Notes for the user ----------
+    // You can test by adding items to localStorage from the console, e.g.:
+    // localStorage.setItem('students', JSON.stringify([{name:'A'},{name:'B'}]));
+    // localStorage.setItem('teachers', JSON.stringify([{name:'T1'}]));
+    // localStorage.setItem('exams', JSON.stringify([{date:'2026-01-01'}]));
+    // Then call: refreshDashboard();
+  </script>
+</body>
+</html>

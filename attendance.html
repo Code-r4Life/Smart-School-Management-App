@@ -1,0 +1,493 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Attendance — Smart School</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    html,body { height:100%; }
+    body {
+      margin:0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background: #f8fafc; /* Tailwind gray-50 */
+      color: #0f172a; /* gray-900 */
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      line-height:1.3;
+    }
+
+    a { text-decoration:none; color:inherit; }
+    img { max-width:100%; display:block; }
+
+    .container {
+      padding: 1.5rem; /* p-6 */
+      max-width: 1280px; /* approx max-w-7xl */
+      margin: 0 auto;
+    }
+
+    /* -------------------------
+       Navbar (from layout.js)
+       ------------------------- */
+    .navbar {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      backdrop-filter: blur(12px);
+      background: rgba(255,255,255,0.8);
+      border-bottom: 1px solid #e0e7ff; /* indigo-100 */
+      box-shadow: 0 2px 4px rgba(15,23,42,0.05);
+    }
+    .nav-container { max-width:1280px; margin:0 auto; padding:0 1rem; display:flex; justify-content:space-between; align-items:center; height:4rem; }
+    .logo { display:flex; align-items:center; gap:0.75rem; }
+    .logo-icon { width:2.5rem; height:2.5rem; display:flex; align-items:center; justify-content:center; border-radius:0.5rem; background: linear-gradient(135deg,#4f46e5,#7c3aed); color:#fff; box-shadow:0 4px 12px rgba(0,0,0,0.1); font-size:1.05rem; }
+    .logo h1 { font-size:1.125rem; font-weight:700; background:linear-gradient(90deg,#4f46e5,#7c3aed); color:transparent; -webkit-background-clip:text; margin:0; }
+    .logo p { margin:0; font-size:0.625rem; color:#6b7280; }
+
+    .nav-links { display:flex; gap:0.25rem; align-items:center; }
+    .nav-links a { display:flex; align-items:center; gap:0.5rem; padding:0.5rem 0.9rem; border-radius:0.5rem; font-size:0.875rem; transition:all 0.3s; color:#4b5563; }
+    .nav-links a.active { background: linear-gradient(90deg,#4f46e5,#7c3aed); color:#fff; box-shadow:0 4px 12px rgba(79,70,229,0.2); }
+
+    h1 {
+      font-size: 40px;
+      font-weight: 700;
+      background: linear-gradient(to right, #4f46e5, #9333ea);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+    }
+
+     /* Headings */
+    .title {
+      font-size: 2.25rem; /* text-4xl */
+      line-height: 1.1;
+      font-weight: 700;
+      margin: 0 0 0.5rem 0;
+      display: inline-block;
+      background-image: linear-gradient(90deg,#4f46e5,#7c3aed); /* indigo -> purple */
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      -webkit-text-fill-color: transparent;
+    }
+    .muted { color: #475569; /* gray-600 */ font-size: 1rem; }
+
+    p.subtitle {
+      color: #4b5563;
+      margin-bottom: 20px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+
+    label {
+      font-weight: 500;
+      font-size: 14px;
+      color: #374151;
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    select, input[type="date"] {
+      width: 100%;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #d1d5db;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    select:focus, input[type="date"]:focus {
+      border-color: #4f46e5;
+      box-shadow: 0 0 0 2px #c7d2fe;
+    }
+
+    .filters {
+      display: grid;
+      grid-template-columns: auto auto auto;
+      gap: 16px;
+    }
+
+    .save-btn {
+      background: linear-gradient(to right, #16a34a, #15803d);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 15px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 14px;
+      gap: 8px;
+    }
+
+    .save-btn:hover {
+      background: linear-gradient(to right, #15803d, #166534);
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      color: white;
+      padding: 24px;
+      border-radius: 16px;
+      font-weight: 600;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+
+    .blue { background: linear-gradient(to bottom right, #3b82f6, #2563eb); }
+    .green { background: linear-gradient(to bottom right, #22c55e, #16a34a); }
+    .purple { background: linear-gradient(to bottom right, #a855f7, #7e22ce); }
+
+    .student-list {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+
+    .student {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 20px;
+      border-bottom: 1px solid #f3f4f6;
+      transition: background 0.2s ease;
+    }
+
+    .student:hover {
+      background: #eef2ff;
+    }
+
+    .student.present {
+      background: #ecfdf5;
+    }
+
+    .student-info {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      color: white;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+    }
+
+    .avatar.present {
+      background: linear-gradient(to bottom right, #22c55e, #16a34a);
+    }
+
+    .avatar.absent {
+      background: linear-gradient(to bottom right, #9ca3af, #6b7280);
+    }
+
+    .student-details h3 {
+      margin: 0;
+      color: #111827;
+      font-size: 16px;
+    }
+
+    .student-details p {
+      margin: 0;
+      color: #6b7280;
+      font-size: 13px;
+    }
+
+    .switch {
+      position: relative;
+      width: 50px;
+      height: 25px;
+      background: #d1d5db;
+      border-radius: 25px;
+      transition: background 0.3s;
+      cursor: pointer;
+    }
+
+    .switch .thumb {
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 19px;
+      height: 19px;
+      background: white;
+      border-radius: 50%;
+      transition: transform 0.3s;
+    }
+
+    .switch.active {
+      background: #22c55e;
+    }
+
+    .switch.active .thumb {
+      transform: translateX(25px);
+    }
+
+    .status {
+      margin-left: 10px;
+      font-weight: 500;
+    }
+
+    .status.present {
+      color: #16a34a;
+    }
+
+    .status.absent {
+      color: #6b7280;
+    }
+
+    .success {
+      background: #dcfce7;
+      color: #166534;
+      border: 1px solid #bbf7d0;
+      padding: 10px 14px;
+      border-radius: 8px;
+      margin-top: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      animation: fadeIn 0.4s ease;
+    }
+
+    .attendance-switch {
+      display: flex;
+      align-items: center;
+    }
+    .attendance-switch .switch{
+        cursor: pointer;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+    <!-- Navbar -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="logo">
+        <div class="logo-icon">
+          <img src="icons/school-stroke-rounded.svg">
+        </div>
+        <div>
+          <h1>Smart School Management System</h1>
+        </div>
+      </div>
+      <div class="nav-links">
+        <a href="dashboard.html">Dashboard</a>
+        <a href="students.html">Students</a>
+        <a href="teachers.html">Teachers</a>
+        <a href="attendance.html" class="active">Attendance</a>
+        <a href="exams.html">Exams</a>
+        <a href="fees.html">Fees</a>
+        <a href="about.html">About</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container">
+    <!-- Header -->
+    <div id="header" class="mb-8 enter">
+      <h1 class="title">Attendance</h1>
+      <p class="muted">Mark student attendance for the day</p>
+    </div>
+
+    <div class="card">
+      <div class="filters">
+        <div>
+          <label>Select Class</label>
+          <select id="classSelect">
+            <option value="">Choose Class</option>
+          </select>
+        </div>
+
+        <div>
+          <label>Select Date</label>
+          <input type="date" id="dateSelect" />
+        </div>
+
+        <div>
+          <button class="save-btn" id="saveBtn">
+            <img src="icons/file-edit-stroke-rounded.svg">
+            Save Attendance
+          </button>
+        </div>
+      </div>
+      <div id="successMessage" class="success" style="display:none;">
+        <img src="icons/checkmark-badge-04-stroke-rounded.svg">
+        Attendance saved successfully!
+      </div>
+    </div>
+
+    <div id="stats" class="stats" style="display:none;">
+      <div class="stat-card blue">
+        <p>Total Students</p>
+        <h2 id="totalCount">0</h2>
+      </div>
+      <div class="stat-card green">
+        <p>Present</p>
+        <h2 id="presentCount">0</h2>
+      </div>
+      <div class="stat-card purple">
+        <p>Attendance Rate</p>
+        <h2 id="attendanceRate">0%</h2>
+      </div>
+    </div>
+
+    <div class="student-list" id="studentList">
+      <div style="padding: 40px; text-align: center; color: #6b7280;">Please select a class to view students.</div>
+    </div>
+  </div>
+
+  <script>
+    const classSelect = document.getElementById('classSelect');
+    const dateSelect = document.getElementById('dateSelect');
+    const studentList = document.getElementById('studentList');
+    const saveBtn = document.getElementById('saveBtn');
+    const successMsg = document.getElementById('successMessage');
+    const statsSection = document.getElementById('stats');
+    const totalCountEl = document.getElementById('totalCount');
+    const presentCountEl = document.getElementById('presentCount');
+    const attendanceRateEl = document.getElementById('attendanceRate');
+
+    let students = JSON.parse(localStorage.getItem('students') || '[]');
+    let attendance = {};
+    let selectedClass = "";
+    let selectedDate = new Date().toISOString().split('T')[0];
+    dateSelect.value = selectedDate;
+
+    // Load unique classes
+    const classes = [...new Set(students.map(s => s.class))].filter(Boolean);
+    classSelect.innerHTML = '<option value="">Choose Class</option>';
+    classes.forEach(cls => {
+      const opt = document.createElement('option');
+      opt.value = cls;
+      opt.textContent = cls;
+      classSelect.appendChild(opt);
+    });
+
+    function loadAttendance() {
+      if (!selectedClass || !selectedDate) return;
+      const key = `attendance_${selectedClass}_${selectedDate}`;
+      attendance = JSON.parse(localStorage.getItem(key) || '{}');
+    }
+
+    function renderStudents() {
+      if (!selectedClass) {
+        studentList.innerHTML = `<div style="padding: 40px; text-align: center; color: #6b7280;">Please select a class to view students.</div>`;
+        statsSection.style.display = 'none';
+        return;
+      }
+
+      const filtered = students.filter(s => s.class === selectedClass);
+      if (filtered.length === 0) {
+        studentList.innerHTML = `<div style="padding: 40px; text-align: center; color: #6b7280;">No students found in this class.</div>`;
+        statsSection.style.display = 'none';
+        return;
+      }
+
+      let html = "";
+      filtered.forEach(s => {
+        const isPresent = attendance[s.id] || false;
+        html += `
+          <div class="student ${isPresent ? "present" : ""}">
+            <div class="student-info">
+              <div class="avatar ${isPresent ? "present" : "absent"}">${s.name.charAt(0).toUpperCase()}</div>
+              <div class="student-details">
+                <h3>${s.name}</h3>
+                <p>Roll: ${s.roll} | Section: ${s.section}</p>
+              </div>
+            </div>
+            <div class="attendance-switch" data-id="${s.id}">
+              <div class="switch ${isPresent ? "active" : ""}">
+                <div class="thumb"></div>
+              </div>
+              <span class="status ${isPresent ? "present" : "absent"}">${isPresent ? "Present" : "Absent"}</span>
+            </div>
+          </div>
+        `;
+      });
+      studentList.innerHTML = html;
+
+      // Attach toggle listeners
+      document.querySelectorAll('.attendance-switch').forEach(el => {
+        el.addEventListener('click', e => {
+          const id = el.getAttribute('data-id');
+          attendance[id] = !attendance[id];
+          renderStudents();
+          renderStats();
+        });
+      });
+
+      renderStats();
+    }
+
+    function renderStats() {
+      const filtered = students.filter(s => s.class === selectedClass);
+      const total = filtered.length;
+      const present = Object.values(attendance).filter(Boolean).length;
+      const rate = total > 0 ? ((present / total) * 100).toFixed(1) : 0;
+      totalCountEl.textContent = total;
+      presentCountEl.textContent = present;
+      attendanceRateEl.textContent = rate + "%";
+      statsSection.style.display = "grid";
+    }
+
+    saveBtn.addEventListener('click', () => {
+      if (!selectedClass || !selectedDate) {
+        alert("Please select class and date");
+        return;
+      }
+      const key = `attendance_${selectedClass}_${selectedDate}`;
+      localStorage.setItem(key, JSON.stringify(attendance));
+      successMsg.style.display = 'flex';
+      setTimeout(() => successMsg.style.display = 'none', 3000);
+    });
+
+    classSelect.addEventListener('change', e => {
+      selectedClass = e.target.value;
+      loadAttendance();
+      renderStudents();
+    });
+
+    dateSelect.addEventListener('change', e => {
+      selectedDate = e.target.value;
+      loadAttendance();
+      renderStudents();
+    });
+
+    // Auto-load first class if available
+    if (classes.length > 0) {
+      selectedClass = classes[0];
+      classSelect.value = selectedClass;
+      loadAttendance();
+      renderStudents();
+    }
+  </script>
+</body>
+</html>
